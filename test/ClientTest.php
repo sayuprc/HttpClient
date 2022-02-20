@@ -118,4 +118,21 @@ class ClientTest extends TestCase
         $this->expectException(ClientException::class);
         $this->client->get('');
     }
+
+    /**
+     * レスポンスヘッダも取得する
+     */
+    public function testWithHeader()
+    {
+        $expected = 'HTTP/1.1 200 OK';
+
+        $response = $this->client->get(
+            'http://localhost/public/get/200.php',
+            ['with_header' => true,]
+        );
+
+        $actual = $response->getHeaders()[0];
+
+        $this->assertEquals($expected, $actual);
+    }
 }

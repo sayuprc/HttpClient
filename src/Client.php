@@ -52,11 +52,16 @@ class Client
             $this->reset();
         }
 
-        $curlOptions[CURLOPT_URL] = $this->createUrl($url, $options['query'] ?? []);
-        $curlOptions[CURLOPT_POST] = strtoupper($method) === 'POST' ? true : false;
-        $curlOptions[CURLOPT_HTTPHEADER] = $options['headers'] ?? [];
-        $curlOptions[CURLOPT_RETURNTRANSFER] = true;
-        $curlOptions[CURLOPT_POSTFIELDS] = $this->createRequestBody($options);
+        $withHeader = isset($options['with_header']) ? true : false;
+
+        $curlOptions = [
+            CURLOPT_URL => $this->createUrl($url, $options['query'] ?? []),
+            CURLOPT_POST => strtoupper($method) === 'POST' ? true : false,
+            CURLOPT_HTTPHEADER => $options['headers'] ?? [],
+            CURLOPT_POSTFIELDS => $this->createRequestBody($options),
+            CURLOPT_HEADER => $withHeader,
+            CURLOPT_RETURNTRANSFER => true,
+        ];
 
         curl_setopt_array($this->ch, $curlOptions);
 
@@ -69,7 +74,19 @@ class Client
             throw new ClientException($errorMessage, $errorNo, $response, $info);
         }
 
-        return new HttpResponse($info['http_code'], $response);
+        if ($withHeader) {
+            $headerSize = $info['header_size'];
+            $headers = array_filter(
+                explode("\r\n", substr($response, 0, $headerSize)),
+                fn ($val) => $val
+            );
+            $body = substr($response, $headerSize);
+        } else {
+            $headers = [];
+            $body = $response;
+        }
+
+        return new HttpResponse($info['http_code'], $body, $headers);
     }
 
     private function reset(): void

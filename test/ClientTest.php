@@ -135,4 +135,18 @@ class ClientTest extends TestCase
 
         $this->assertEquals($expected, $actual);
     }
+
+    public function testErrorCodeDescription()
+    {
+        $expected = 'Unsupported protocol';
+        $actual = '';
+
+        try {
+            $this->client->get('htp://localhost');
+        } catch (ClientException $e) {
+            $actual = $e->getErrorCodeDescription();
+        }
+
+        $this->assertEquals($expected, $actual);
+    }
 }

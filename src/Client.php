@@ -71,7 +71,7 @@ class Client
         $errorMessage = curl_error($this->ch);
 
         if ($errorNo !== 0) {
-            throw new ClientException($errorMessage, $errorNo, $response, $info);
+            throw new ClientException($errorMessage, $errorNo, curl_strerror($errorNo), $response, $info);
         }
 
         if ($withHeader) {
